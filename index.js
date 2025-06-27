@@ -89,6 +89,10 @@ userSchema.methods.getLogs = function (from, to, limit) {
 
 const User = mongoose.model("User", userSchema);
 
+app.get("/api/users", async (req, res) => {
+    res.json((await User.find()).map((user) => user.getUserInfos()));
+})
+
 app.post("/api/users", async (req, res) => {
   const username = String(req.body.username);
 
@@ -97,7 +101,6 @@ app.post("/api/users", async (req, res) => {
 
     if (user) {
       res.json(user.getUserInfos());
-      console.log(`Already existing user infos sent to client: ${user}`);
     } else {
       const newUser = new User({
         username: username,
@@ -106,9 +109,6 @@ app.post("/api/users", async (req, res) => {
       await newUser.save();
 
       res.json(newUser.getUserInfos());
-      console.log(
-        `New User added to database and infos sent to client: ${newUser}`
-      );
     }
   } catch (error) {
     UnexpectedError(error, res);
@@ -145,7 +145,6 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 
     if (user) {
       res.json(user.getLogs(from, to, limit));
-      console.log(`User's logs sent to client: ${user}`);
     } else {
       res.status(404).json({ error: "User not found" });
     }
